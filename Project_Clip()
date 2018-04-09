@@ -1,0 +1,56 @@
+# Name: Austin Lin
+# Date: April 5th 2018
+# Assignment 1 Part 5
+# This script is a modified output of Model Builder that projects and clips data in the University District
+
+import arcpy
+import os
+
+# Set environment settings
+arcpy.env.workspace = "C:\\Users\\avalo\\Documents\\School\\MS GIS\\GEOG 565\\Assignment 1\\Assign_1.gdb"
+arcpy.env.overwriteOutput = True
+
+# Set local variables
+outWorkspace = "C:\\Users\\avalo\\Documents\\School\\MS GIS\\GEOG 565\\Assignment 1\\Assign_1.gdb"
+
+# 1. Defines the projection for each dataset to WA State Plane North FIPS 4601.
+# Define list of feature classes that are to be re-projected
+myList = arcpy.ListFeatureClasses()
+
+try:
+    # Generate the list of feature classes to project as inputs
+    for fc in myList:
+    # Determine if the input has a defined coordinate system, can't project it if it does not 
+        dsc = arcpy.Describe(fc)
+        if dsc.spatialReference.Name == "Unknown":
+            print 'Skipped this feature class due to undfined coordinate system: {}.'.format(fc)
+        else:
+            # Determine the new output feature class path and name
+            outfc = os.path.join(outWorkspace, fc) + '_Project'
+            # Set output coordinate system
+            # Spatial reference factory code for NAD_1983_StatePlane_Washington_North_FIPS_4601_Feet is 102478
+            outCs = arcpy.SpatialReference(102478)
+            # Run project tool
+            arcpy.Project_management(fc, outfc, outCs)
+            # Completion check
+            print(arcpy.GetMessages())
+
+# Generate error message with try fails
+except arcpy.ExecuteError:
+    print(arcpy.GetMessages(2))
+except Exception as ex:
+    print(ex.args[0])
+
+# 2. Clips the roads and trees datasets based on the UDistrict boundary
+# Generate list of projected feature classes that needs to be clipped
+clipList = arcpy.ListFeatureClasses('seattle*_Project', "", "")
+
+# For loop for clipping projected feature classes to analysis extent
+for fc in clipList:
+    # Determine the clip feature for the clip tool
+    clipFc = os.path.join(outWorkspace, 'uDistrict_Project')
+    # Determine the output file name for the clipped feature class
+    clipOut = os.path.join(outWorkspace, fc) + '_clipped'
+    # Execute clip tool
+    arcpy.Clip_analysis(fc, clipFc, clipOut, " ")
+    print 'Clip operation completed for {}.'.format(fc)
