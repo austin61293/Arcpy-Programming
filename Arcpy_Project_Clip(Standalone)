@@ -7,11 +7,11 @@ import arcpy
 import os
 
 # Set environment settings
-arcpy.env.workspace = "C:\\Users\\avalo\\Documents\\School\\MS GIS\\GEOG 565\\Assignment 1\\Assign_1.gdb"
+arcpy.env.workspace = "C:\\path\\Assign_1.gdb"
 arcpy.env.overwriteOutput = True
 
 # Set local variables
-outWorkspace = "C:\\Users\\avalo\\Documents\\School\\MS GIS\\GEOG 565\\Assignment 1\\Assign_1.gdb"
+outWorkspace = "C:\\path\\Assign_1.gdb"
 
 # 1. Defines the projection for each dataset to WA State Plane North FIPS 4601.
 # Define list of feature classes that are to be re-projected
