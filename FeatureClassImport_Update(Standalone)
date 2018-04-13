@@ -1,0 +1,95 @@
+# Geog 565 2016 Assignment 2 Part 2
+# Name: Austin Lin 
+# Date: Apr. 12th 2018
+
+# This script imports a feature class into an existing GDB
+# Then adds a new field to the feature class, then populates it with the size classification.
+
+
+# import modules
+import arcpy
+import os
+
+# set workspace
+default_workspace = r'C:\\path\\Assignment 2'
+arcpy.env.workspace = r'C:\\path\\Assign_2.gdb'
+outWorkspace = r'C:\\path\\Assign_2.gdb'
+
+# allow overwriting and execution of tools
+arcpy.env.overwriteOutput = True
+
+# define a variable for our shapefile
+data_path = default_workspace + '\\Data\\lakes.shp'
+
+# import feature class to GDB
+arcpy.FeatureClassToGeodatabase_conversion(data_path, outWorkspace)
+if arcpy.Exists('lakes'):
+    # Confirmation statement for importing feature class into GDB for ArcToolbox manipulation
+    print '{} has been added into {}.'.format('lakes.shp', 'Assign_2.gdb')
+
+# add a new field to hold our area class, specify parameters
+inFeatures = "lakes.shp"
+fieldName = "AreaClass"
+fieldType = 'TEXT'
+arcpy.AddField_management(inFeatures, fieldName, fieldType)
+
+# using search cursor to confirm field addition into feature class
+fc = 'lakes'
+with arcpy.da.SearchCursor (fc, fieldName) as sCur: 
+    row = sCur.next()
+    if str(row) == '(None,)':       # if statement for checking existence of new field
+        print 'Field "{}" has been successfully added into feature class "{}".'.format(fieldName, fc)
+    else:
+        print 'Field "{}" cannot be found in feature class "{}".'.format(fieldName, fc)
+        
+# tally up the total number of rows in the table
+row_counter = 0
+for row in sCur:
+    row_counter += 1
+
+# delete unnecessary cursors to prevent complications
+del sCur
+del row
+
+# We need to make changes to the attribute table, and to do that we need to create an update cursor
+
+# Set up list of fields for update cursor
+fieldNames = ['OBJECTID', 'AREA_', 'AreaClass']
+
+# Use the AREA_ field and the new SizeClass field in the cursor
+uCur = arcpy.da.UpdateCursor(fc, fieldNames)
+
+# Small - Area less than 35000
+# Medium - Area greater than or equal to 35000 and less than 120000 feet
+# Large - Area greater than or equal to 120000 feet
+# populate SizeClass based on the value in AREA_ specified in the Directions
+
+# add counter for keeping track of records
+update_counter = 0
+fail_counter = 0
+
+# loop though the cursor
+for row in uCur:
+    if row[1] < 35000: 
+        row[2] = 'Small'
+        uCur.updateRow(row)
+        update_counter += 1
+    elif row[1] >= 35000 and row[2] < 120000:
+        row[2] = 'Medium'
+        uCur.updateRow(row)
+        update_counter += 1
+    elif row[1] > 120000:
+        row[2] = 'Large'
+        uCur.updateRow(row)
+        update_counter += 1
+    else:
+        print 'Row ' + row[0] + ' size class was not updated.'
+        fail_counter += 1
+        
+# delete your row variable
+# delete your cursor variable
+del uCur
+del row
+
+# Final statement about table update
+print 'Field updated for "{}" was completed, {} out of {} records were updated. {} records failed to update.'.format(fieldName, update_counter, row_counter, fail_counter)
