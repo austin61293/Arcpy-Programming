@@ -1,0 +1,84 @@
+# Geog 565 2016 Assignment 2 Part 1
+# Name: Austin Lin
+# Date: Apr. 11th 2018
+
+# This script looks at all of the feature classes in a workspace and copies all of the point and line feature classes
+# into a new database that the script creates.
+
+
+# import modules
+import arcpy
+import os
+
+# set workspace
+default_workspace = r'C:\\path\\Assignment 2'
+arcpy.env.workspace = r'C:\\path\\Assignment 2'
+outWorkspace = r'C:\\path\\Assignment 2'
+
+# allow overwriting, execution of tools
+arcpy.env.overwriteOutput = True
+
+# create new geodatabase
+# variables for gdb paths and name
+gdb_name = 'Assign_2.gdb'
+gdb_path = outWorkspace + '\\' + gdb_name
+
+# if statement for generating the desired gdb 
+if arcpy.Exists(gdb_path) == True:
+    print '{} already exist at this file directory, no new file GDB was generated.'.format(gdb_name)
+else:
+    arcpy.CreateFileGDB_management(outWorkspace, gdb_name)
+
+# print out that the geodatabase was successfully created (this is very nice for the user, but not necessary for the script's purpose)
+# if statement for checking if the gdb was successfully created
+if arcpy.Describe(gdb_path).datatype == 'Workspace':
+    print '{} has been created at this file directory {}.'.format(gdb_name, outWorkspace)
+else:
+    # inform user that the new GDB is not successfully created
+    print '{} does not exist at this workspace directory.'.format(gdb_name)
+
+# import desired shapefiles into the new file GDB.
+# Set up arcpy environment to import folder with shapefiles
+import_env = default_workspace + '\\Exercise06'
+arcpy.env.workspace = import_env
+
+# Listing feature classes to import into the GDB
+fcList = arcpy.ListFeatureClasses()
+importList = []
+
+# loop through each feature class in the list of feature classes
+# use arcpy.Describe to set variables to the feature class name and shapeType
+# if the shapeType is Point or Polyline, add it to the new geodatabase
+# otherwise, if the shapeType is Polygon, do nothing
+# add print statements as needed so the user knows what's going on when they run the script!
+for fc in fcList:
+    fc_dsc = arcpy.Describe(fc)
+    fc_name = fc_dsc.name                   # feature class name
+    fc_shape = fc_dsc.shapeType           # feature class shape type
+    # Filtering only Point and Polyline feature classes for import
+    if fc_shape == 'Point' or fc_shape == 'Polyline':
+        importList.append(fc)
+        print fc_name + ' was added to the import list.'
+    else:       # Any other shape type will not be imported
+        continue
+ 
+# Confirmation statement of the feature classes to be imported into the GDB
+print '{} feature classes are to be imported into {}: '.format(len(importList), gdb_name)
+print importList
+
+# Set up input and output parameters for arcpy import funciton
+in_features = importList
+output_loc = gdb_path
+# Reset arcpy environment to newly generated GDB for import for listing of imported feature classes in the GDB
+gdb_env = default_workspace + '\\' + gdb_name
+
+# Import list of feature classes into the desired GDB
+arcpy.FeatureClassToGeodatabase_conversion(in_features, output_loc)
+
+# Confirmation statement for feature classes imported into the GDB
+fcList_gdb= arcpy.ListFeatureClasses(gdb_path)
+print '{} feature classes were successfully imported into {}: '.format(len(fcList_gdb), gdb_name)
+print fcList_gdb
+
+
+
