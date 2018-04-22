@@ -1,0 +1,97 @@
+# Name: Austin Lin 
+# Date: Apr 22nd 2018
+# This script takes in a text file containing coordinates and turns it into a point shapefile.
+
+# Directions: Create a Point shapefile that contains points whose coordinates are obtained 
+# from the Assignment3_pointData.txt file, included in the Assignment3 starter package.
+# Examine the content of this file before you begin. It contains an object ID and x y coordinates.
+# Use the comments below to guide you, though feel free to ignore them and do it your own way. 
+
+# import modules
+import os
+import arcpy
+from arcpy import env 
+
+# set up your workspace and environment
+default_workspace = r'C:\path'
+arcpy.env.workspace = r'C:\path'
+outWorkspace = r'C:\path'
+arcpy.env.overwriteOutput = True
+
+# create necessary variables
+fName = 'Assignment3_pointData.txt'
+fPath = os.path.join(outWorkspace, fName)
+
+# create a variable to hold your new shapefile's name
+fcName = 'point_fc.shp'
+out_name = fcName
+out_path = outWorkspace
+geometry_type = 'POINT'
+# spatial reference factory code for NAD_1983_StatePlane_Washington_North_FIPS_4601_Feet is 102478
+spatial_reference = arcpy.SpatialReference(102348)
+
+# create a new featureclass in your workspace and make it type "Point"
+arcpy.CreateFeatureclass_management(out_path, out_name, geometry_type, "", "", "", spatial_reference)
+
+# setting up variable for storing location of new feature class
+fc = os.path.join(outWorkspace, fcName)
+
+# confirmation of successful feature class creation
+if os.path.exists(fc) == True:
+    print 'The empty point feature class "{}" has been successfully been created.'.format(fcName)
+else:
+    print 'Feature class "{}" cannot be located.'.format(fcName)
+    
+# open textfile in readmode
+pointFile = open(fPath, 'r')
+
+# Create a list of all the lines in the file, but be sure to exclude the header!
+# reading one line to skip header in the text file
+# storing all the lines from the text file into a variable
+lines = pointFile.readlines()[1:]
+
+# Create an Insert Cursor and give it your new feature class and the list of fields
+# The geometry field you need is "SHAPE@XY"
+# It is recomended that you create the cursor with a 'with' statement, though you don't have to
+
+# 1) SOLUTION USING 'with' statements for insert cursor
+# create a rowValue variable to hold the list of attributes 
+with arcpy.da.InsertCursor(fc, ['Shape@XY']) as row:
+    point = arcpy.Point()
+    pointCount = 0
+    # Loop through the lines in your text file (except the header)
+    for line in lines:
+        # split the values using the split() function. (i.e. values = line.split(";")    
+        # assign variables to your x and y (use the index of the split values), you will need to cast your x and y as floats
+        point.ID, point.X, point.Y = line.split(';')
+        row.insertRow([point])
+        pointCount = point.ID
+        
+# delete the rowValue variable
+del row   
+# close the file
+pointFile.close()
+# summary statement
+print 'The operation has been completed, a total of {} features were added.'.format(pointCount)
+
+# 2) SOLUTION WITHOUT USING 'with' statements for insert cursor
+# create a rowValue variable to hold the list of attributes 
+inCur = arcpy.da.InsertCursor(fc, ['Shape@XY'])
+point = arcpy.Point()
+pointCount = 0
+
+# Loop through the lines in your text file (except the header)
+for line in lines:
+    # split the values using the split() function. (i.e. values = line.split(";")    
+    # assign variables to your x and y (use the index of the split values), you will need to cast your x and y as floats
+    point.ID, point.X, point.Y = line.split(';')  
+    # use cursor.insertRow(rowValue) to insert the row 
+    inCur.insertRow([point])
+    pointCount = point.ID
+
+# delete the cursor variable (unless you create the cursor with 'with' in which case it is automatically deleted)
+del inCur    
+# close the file
+pointFile.close()
+# summary statement
+print 'The operation has been completed, a total of {} features were added.'.format(pointCount)
