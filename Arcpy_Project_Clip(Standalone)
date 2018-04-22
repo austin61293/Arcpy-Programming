@@ -1,6 +1,5 @@
 # Name: Austin Lin
 # Date: April 5th 2018
-# Assignment 1 Part 5
 # This script is a modified output of Model Builder that projects and clips data in the University District
 
 import arcpy
