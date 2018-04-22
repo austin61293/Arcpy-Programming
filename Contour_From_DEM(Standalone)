@@ -1,0 +1,64 @@
+# Name: Austin Lin  
+# Date: Apr 22 2018
+
+# Using a DEM file, create a contour file that uses an interval that the user specifies. 
+# Include arcpy.GetParameterAsText for user input specification.
+
+# import arcpy
+import arcpy
+
+# import arcpy.sa
+from arcpy import env
+from arcpy.sa import *
+
+# set your environment variables
+default_workspace = r'C:\path'
+arcpy.env.workspace = r'C:\path'
+outWorkspace = r'C:\path'
+arcpy.env.overwriteOutput = True
+
+# get contour interval parameter from the user
+try: 
+    interval = arcpy.GetParameterAsText(0)
+    # Debugging line for getting user input below
+    # interval = input('Enter a number: ')
+
+# display error message when input is invalid
+except arcpy.ExecuteError:
+    print(arcpy.GetMessages(2))
+
+# check out the Spatial Analyst extention if its available
+ext = 'Spatial'
+
+# check if the Spatial Analyst extention is available
+try:
+    if arcpy.CheckExtension(ext) == "Available":
+        # check out the Spatial Analyst Extention
+        arcpy.CheckOutExtension(ext)
+        print '{} Analyst Extension enabled.'.format(ext)
+    else:
+        # raise a custom exception for troubleshooting
+        raise LicenseError
+
+# except statements for returning error message when extention is not available
+except LicenseError:
+    print '{} Analyst license is unavailable'.format(ext)
+except arcpy.ExecuteError:
+    print(arcpy.GetMessages(2))
+
+# generate contour
+DEM = arcpy.Raster('file.dem')
+
+# set variables
+inRaster = DEM
+contourInterval = interval
+baseContour = ""
+outContours = outWorkspace + 'Contour_Output'
+
+# execute Contour
+arcpy.sa.Contour(inRaster, outContours, contourInterval, baseContour)
+print '"Contour_Ouput" generated at {}.'.format(outWorkspace)
+
+# check in the Spatial Analyst extention
+arcpy.CheckOutExtension(ext)
+print '{} Analyst Extension disabled.'.format(ext)
