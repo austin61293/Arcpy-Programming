@@ -1,0 +1,78 @@
+# Name: Austin Lin
+# Date: Apr 22nd 2018
+
+
+# Below is a script that creates a new raster that meets certain
+# slope, aspect, and land cover conditions. The elevation and
+# landcover.tif files are taken from course data.
+
+# Sample raster calculator criteria
+# Moderate slope: between 10 and 20 degrees 
+# Northeast aspect: between 0 and 90 degrees 
+# Forested: land cover types of 41, 42, or 43
+
+# import arcpy
+import arcpy
+# import arcpy.sa
+from arcpy import env
+from arcpy.sa import *
+
+# set workspace
+default_workspace = r'C:\path'
+arcpy.env.workspace = r'C:\path'
+outWorkspace = r'C:\path'
+arcpy.env.overwriteOutput = True
+ext = 'Spatial'
+
+# check if the Spatial Analyst extention is available
+try:
+    if arcpy.CheckExtension(ext) == "Available":
+        # check out the Spatial Analyst Extention
+        arcpy.CheckOutExtension(ext)
+        print '{} Analyst Extension enabled.'.format(ext)
+    else:
+        # raise a custom exception for troubleshooting
+        raise LicenseError
+
+# except statements for returning error message when extention is not available
+except LicenseError:
+    print '{} Analyst license is unavailable'.format(ext)
+except arcpy.ExecuteError:
+    print(arcpy.GetMessages(2))
+
+# create a Raster object for your elevation
+ELERaster = arcpy.Raster('Elevation')
+print 'Elevation raster created.'
+
+# create a Raster object for your landcover
+LCRaster = arcpy.Raster('landcover.tif')
+print 'Landcover raster created.'
+
+# create slope and aspect variables to hold Slope and Aspect objects
+rSlope = arcpy.sa.Slope(ELERaster)
+rAspect = arcpy.sa.Aspect(ELERaster)
+print 'Slope and Aspect raster created for raster calculation.'
+
+# Moderate slope: between 10 and 20 degrees 
+# Northeast aspect: between 0 and 90 degrees 
+# Forested: land cover types of 41, 42, or 43
+# create a variable and assign it to your slope calculation
+m_Slope = ((rSlope >= 10) & (rSlope <= 20))
+
+# create a variable and assign it to your aspect calculation
+NE_Aspect = ((rAspect >= 0) & (rAspect <= 90))
+
+# create a variable and assign it to your landcover calculation
+Target_LC = ((LCRaster == 41) | (LCRaster == 42) | (LCRaster == 43))
+
+# calculate the final output
+outRaster = (m_Slope & NE_Aspect & Target_LC)
+print 'Raster calculator parameters created.'
+
+# save the raster output
+outRaster.save(r'C:\path\gdb\Raster_output')
+print 'Result saved in _____ GDB as "Raster_output".'
+
+# check in the Spatial Analyst Extention
+arcpy.CheckInExtension(ext)
+print '{} Analyst Extension disabled.'.format(ext)
