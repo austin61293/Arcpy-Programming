@@ -19,6 +19,7 @@ arcpy.env.overwriteOutput = True
 
 # get contour interval parameter from the user
 try: 
+    # Require parameter set up in ArcMap -> Toolbox -> Script properties
     interval = arcpy.GetParameterAsText(0)
     # Debugging line for getting user input below
     # interval = input('Enter a number: ')
