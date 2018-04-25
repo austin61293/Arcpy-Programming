@@ -1,5 +1,5 @@
 # Name: Austin Lin  
-# Date: Apr 22 2018
+# Date: Apr 24 2018
 
 # Using a DEM file, create a contour file that uses an interval that the user specifies. 
 # Include arcpy.GetParameterAsText for user input specification.
