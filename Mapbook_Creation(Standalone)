@@ -1,0 +1,78 @@
+# Author: Austin Lin
+# Date: May 1st 2018
+
+# Python script for exporting selected map pages of a map document to a PDF file and
+# create a new PDF that includes the Title, Overview, and exported data driven pages.
+
+# import arcpy and set up your workspace and environments
+import os
+import arcpy
+from arcpy import env 
+
+default_workspace = r'C:\path'
+arcpy.env.workspace = r'C:\path'
+outWorkspace = r'C:\path'
+arcpy.env.overwriteOutput = True
+
+# create an arcpy.mapping.MapDocument using your mxd
+mxd = arcpy.mapping.MapDocument(path.mxd)
+print 'Mapbook object created.'
+
+# confirming dataframe contents in map document
+df = arcpy.mapping.ListDataFrames(mxd, "*")
+print 'Map document contents: '
+for i in df:
+    print 'Dataframe ' + i.name + ' :'
+    layers = arcpy.mapping.ListLayers(mxd, "", i)
+    counter = 1
+    for layer in layers:
+        print 'Layer {} - '.format(counter) + layer.name
+        counter += 1
+
+# Export Data Driven Pages to a PDF file
+if os.path.exists(path.mxd) == True:
+    # for-loop using range() to loop through all the different pages of the mapbook divided by index grid
+    for pageNum in range(1, mxd.dataDrivenPages.pageCount + 1):
+        # List out page numbers as indicator of active layers
+        mxd.dataDrivenPages.currentPageID = pageNum
+        # Export individual pages from the mapbook to PDF
+        arcpy.mapping.ExportToPDF(mxd, outWorkspace + '\Mapbook_pages\MB_' + str(pageNum) + '.pdf')
+        print 'MB_{} exported to PDF.'.format(str(pageNum))
+else:
+    print 'Map document cannot be found, contents have not been exported as PDF.'
+
+# create a fresh PDF document that will hold all of your pages
+MB_name = 'name.pdf'
+Mapbook = arcpy.mapping.PDFDocumentCreate(outWorkspace + '\\' + MB_name)
+for page in range(1, mxd.dataDrivenPages.pageCount + 1):
+    Mapbook.appendPages(outWorkspace + '\Mapbook_pages\MB_' + str(page) + '.pdf')
+    
+Mapbook.saveAndClose()
+print MB_name + ' has been populated with {} exported mapbook pages.'.format(mxd.dataDrivenPages.pageCount)
+
+# use PDFDocumentCreate(pdf_path) function
+final_pdf = 'Atlas.pdf'
+fPDF = arcpy.mapping.PDFDocumentCreate(outWorkspace + '\\' + final_pdf)
+
+# append the title page, the index pages, and the map pages to the PDF map book in that order
+# assume the title page and index page are already created as PDF documents
+# use PDFDocumentCreate function's appendPages method 3 times, one for title, one for overview, one for your exported pages
+title = 'mapbook_Title.pdf'
+overview = 'mapbook_Overview.pdf'
+fPDF.appendPages(outWorkspace + '\\' + title)
+fPDF.appendPages(outWorkspace + '\\' + overview)
+fPDF.appendPages(outWorkspace + '\\' + MB_name)
+
+#use PDFDocumentCreate function's updateDocProperties method to update the mapbook title and authorship
+fPDF.updateDocProperties('Title', 'Author')
+
+#save and close the mapbook
+fPDF.saveAndClose()
+print 'Mapbook PDF Created as {}, including title, overview, and exported mapbook pages.'.format(final_pdf)
+
+#delete reference to mapBookPDF
+del Mapbook
+del fPDF
+
+# delete mxd object preventing any locks
+del mxd
