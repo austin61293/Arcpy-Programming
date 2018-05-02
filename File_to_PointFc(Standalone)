@@ -2,11 +2,6 @@
 # Date: Apr 24th 2018
 # This script takes in a text file containing coordinates and turns it into a point shapefile.
 
-# Directions: Create a Point shapefile that contains points whose coordinates are obtained 
-# from the Assignment3_pointData.txt file, included in the Assignment3 starter package.
-# Examine the content of this file before you begin. It contains an object ID and x y coordinates.
-# Use the comments below to guide you, though feel free to ignore them and do it your own way. 
-
 # import modules
 import os
 import arcpy
