@@ -3,8 +3,8 @@
 
 
 # Below is a script that creates a new raster that meets certain
-# slope, aspect, and land cover conditions. The elevation and
-# landcover.tif files are taken from course data.
+# slope, aspect, and land cover conditions. Elevation and
+# landcover data are prerequisites for the script.
 
 # Sample raster calculator criteria
 # Moderate slope: between 10 and 20 degrees 
